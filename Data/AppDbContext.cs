@@ -13,6 +13,7 @@ namespace ToDoList.Data
         // Passo 2 é criar o DbContext (Este arquivo) e registrar as entidades como 
         public DbSet<Tarefa> Tarefas { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<Comentario> Comentarios { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -21,6 +22,18 @@ namespace ToDoList.Data
                 .WithMany(u => u.Tarefas)
                 .HasForeignKey(t => t.UsuarioId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Comentario>()
+                .HasOne(c => c.Tarefa)
+                .WithMany(t => t.Comentarios)
+                .HasForeignKey(c => c.TarefaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Comentario>()
+                .HasOne(c => c.Usuario)
+                .WithMany(u => u.Comentarios)
+                .HasForeignKey(c => c.UsuarioId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

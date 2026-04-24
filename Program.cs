@@ -1,18 +1,17 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using System.Text;
 using ToDoList.Data;
 using ToDoList.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Instalar o pacote Scalar.AspNetCore
 builder.Services.AddControllers();
-
-// Substitui o SwaggerGen pelo suporte nativo a OpenAPI do .NET 10
 builder.Services.AddOpenApi();
 
-// CORS (Configuração de aula)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DevCors", policy =>
@@ -24,10 +23,32 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Adicionar o serviço após criar
-builder.Services.AddScoped<UsuarioService>();
+// Autenticação JWT
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!))
+    };
+});
 
-// Customização da resposta de validação (Data Annotations)
+builder.Services.AddScoped<UsuarioService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<TarefaService>();
+builder.Services.AddScoped<ComentarioService>();
+
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
@@ -49,11 +70,9 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 
 var app = builder.Build();
 
-
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-
     app.MapScalarApiReference(options =>
     {
         options.WithTitle("API Aula 01 - .NET 10")
@@ -64,6 +83,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("DevCors");
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

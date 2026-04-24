@@ -13,5 +13,7 @@
         public Guid UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
 
+        public ICollection<Comentario>? Comentarios { get; set; }
+
     }
 }
