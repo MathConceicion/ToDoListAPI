@@ -6,14 +6,19 @@
         public string Titulo { get; set; } = string.Empty;
         public string? Descricao { get; set; } = string.Empty;
         public bool Concluida { get; set; } = false;
+
+        /// <summary>
+        /// Prioridade da tarefa: "baixa", "normal", "alta" ou "urgente".
+        /// Valor padrão: "normal".
+        /// </summary>
+        public string Prioridade { get; set; } = "normal";
+
         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
         public DateTime? AtualizadaEm { get; set; } = DateTime.UtcNow;
 
         // Relação com o usuário
         public Guid UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
-
         public ICollection<Comentario>? Comentarios { get; set; }
-
     }
 }

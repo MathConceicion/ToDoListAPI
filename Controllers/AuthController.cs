@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using ToDoList.Data;
 using ToDoList.Models.DTOs.Auth;
 using ToDoList.Models.DTOs.UsuarioDto;
@@ -8,7 +9,7 @@ using ToDoList.Services;
 
 namespace ToDoList.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -23,6 +24,7 @@ namespace ToDoList.Controllers
             _usuarioService = usuarioService;
         }
 
+        // GET /api/auth/{id}
         [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<UsuarioResponseDto>> GetById(Guid id)
@@ -31,6 +33,7 @@ namespace ToDoList.Controllers
             return usuario is not null ? Ok(usuario) : NotFound();
         }
 
+        // POST /api/auth/register
         [HttpPost("register")]
         public async Task<ActionResult<UsuarioResponseDto>> Post(UsuarioCreateDto dto)
         {
@@ -45,27 +48,46 @@ namespace ToDoList.Controllers
             }
         }
 
+        // POST /api/auth/login
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            // Busca o usuário pelo e-mail
             var usuario = await _context.Usuarios
                 .FirstOrDefaultAsync(u => u.Email == dto.Email);
 
-            // Verifica se o usuário existe e se a senha (Hash) é válida
             if (usuario == null || !BCrypt.Net.BCrypt.Verify(dto.Senha, usuario.PasswordHash))
-            {
-                return Unauthorized(new { message = "E-mail ou senha inválidos." });
-            }
+                return Unauthorized(new { message = "E-mail ou senha invalidos." });
 
-            // Gera o Token JWT usando o serviço que criamos
             var token = _authService.GerarToken(usuario);
 
             return Ok(new
             {
-                token = token,
+                token,
                 usuario = new { usuario.Id, usuario.Nome, usuario.Email }
             });
+        }
+
+        // PUT /api/auth/perfil  — requer autenticação
+        [Authorize]
+        [HttpPut("perfil")]
+        public async Task<IActionResult> AtualizarPerfil([FromBody] AtualizarPerfilDto dto)
+        {
+            var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(idStr, out var usuarioId))
+                return Unauthorized(new { message = "Token invalido." });
+
+            var usuario = await _context.Usuarios.FindAsync(usuarioId);
+            if (usuario is null)
+                return NotFound(new { message = "Usuario nao encontrado." });
+
+            usuario.Nome = dto.Nome.Trim();
+
+            if (!string.IsNullOrWhiteSpace(dto.NovaSenha))
+                usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NovaSenha);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { usuario.Id, usuario.Nome, usuario.Email });
         }
     }
 }
