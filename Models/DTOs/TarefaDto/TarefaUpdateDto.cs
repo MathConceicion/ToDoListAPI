@@ -9,7 +9,7 @@ namespace ToDoList.Models.DTOs.TarefaDto
         public string Titulo { get; set; } = string.Empty;
 
         [MaxLength(500, ErrorMessage = "A descrição deve ter no máximo 500 caracteres.")]
-        public string? Descricao { get; set; } = string.Empty;
+        public string? Descricao { get; set; }
 
         public bool Concluida { get; set; }
 
@@ -17,5 +17,10 @@ namespace ToDoList.Models.DTOs.TarefaDto
         /// Valores aceitos: "baixa", "normal", "alta", "urgente".
         /// </summary>
         public string Prioridade { get; set; } = "normal";
+
+        /// <summary>
+        /// Data limite opcional. Enviar null para remover o prazo.
+        /// </summary>
+        public DateTime? DataVencimento { get; set; }
     }
 }

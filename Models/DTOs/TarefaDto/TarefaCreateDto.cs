@@ -9,12 +9,16 @@ namespace ToDoList.Models.DTOs.TarefaDto
         public string Titulo { get; set; } = string.Empty;
 
         [MaxLength(500, ErrorMessage = "A descrição deve ter no máximo 500 caracteres.")]
-        public string? Descricao { get; set; } = string.Empty;
+        public string? Descricao { get; set; }
 
         /// <summary>
         /// Valores aceitos: "baixa", "normal", "alta", "urgente".
-        /// Se não informado, assume "normal".
         /// </summary>
         public string Prioridade { get; set; } = "normal";
+
+        /// <summary>
+        /// Data limite opcional. Formato ISO 8601: "2026-12-31T00:00:00"
+        /// </summary>
+        public DateTime? DataVencimento { get; set; }
     }
 }

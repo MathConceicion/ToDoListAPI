@@ -13,18 +13,16 @@ public class TarefaService
         _context = context;
     }
 
-    // Lista todas as tarefas do usuário
     public async Task<List<TarefaResponseDto>> ListarAsync(Guid usuarioId)
     {
         var tarefas = await _context.Tarefas
             .Where(t => t.UsuarioId == usuarioId)
             .OrderByDescending(t => t.DataCriacao)
-            .ToListAsync(); // ← busca as entidades primeiro
+            .ToListAsync();
 
-        return tarefas.Select(t => t.ToResponse()).ToList(); // ← mapeia em memória
+        return tarefas.Select(t => t.ToResponse()).ToList();
     }
 
-    // Busca uma tarefa pelo ID
     public async Task<TarefaResponseDto?> BuscarPorIdAsync(Guid id, Guid usuarioId)
     {
         var tarefa = await _context.Tarefas
@@ -33,7 +31,6 @@ public class TarefaService
         return tarefa?.ToResponse();
     }
 
-    // Cria uma nova tarefa
     public async Task<TarefaResponseDto> CriarAsync(TarefaCreateDto dto, Guid usuarioId)
     {
         var tarefa = dto.ToEntity(usuarioId);
@@ -42,7 +39,6 @@ public class TarefaService
         return tarefa.ToResponse();
     }
 
-    // Atualiza uma tarefa existente
     public async Task<TarefaResponseDto?> AtualizarAsync(Guid id, TarefaUpdateDto dto, Guid usuarioId)
     {
         var tarefa = await _context.Tarefas
@@ -54,13 +50,13 @@ public class TarefaService
         tarefa.Descricao = dto.Descricao?.Trim();
         tarefa.Concluida = dto.Concluida;
         tarefa.Prioridade = dto.Prioridade?.Trim().ToLower() ?? "normal";
+        tarefa.DataVencimento = dto.DataVencimento;
         tarefa.AtualizadaEm = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return tarefa.ToResponse();
     }
 
-    // Deleta uma tarefa
     public async Task<bool> DeletarAsync(Guid id, Guid usuarioId)
     {
         var tarefa = await _context.Tarefas

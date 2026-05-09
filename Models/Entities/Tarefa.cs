@@ -8,15 +8,18 @@
         public bool Concluida { get; set; } = false;
 
         /// <summary>
-        /// Prioridade da tarefa: "baixa", "normal", "alta" ou "urgente".
-        /// Valor padrão: "normal".
+        /// Prioridade: "baixa", "normal", "alta" ou "urgente". Padrão: "normal".
         /// </summary>
         public string Prioridade { get; set; } = "normal";
+
+        /// <summary>
+        /// Data limite para conclusão da tarefa. Opcional.
+        /// </summary>
+        public DateTime? DataVencimento { get; set; }
 
         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
         public DateTime? AtualizadaEm { get; set; } = DateTime.UtcNow;
 
-        // Relação com o usuário
         public Guid UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
         public ICollection<Comentario>? Comentarios { get; set; }
